@@ -1,15 +1,32 @@
 import torch
 import wandb
-from TTS.tts.layers.xtts.dvae import DiscreteVAE
-from TTS.tts.layers.tortoise.arch_utils import TorchMelSpectrogram
+import sys
+import os
+import importlib
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "TTS_my"))
+
+# 2) Создаём псевдоним модуля
+sys.modules["TTS"] = importlib.import_module("TTS_my.TTS")
+sys.modules["TTS.tts"] = importlib.import_module("TTS_my.TTS.tts")
+sys.modules["TTS.tts.configs"] = importlib.import_module("TTS_my.TTS.tts.configs")
+sys.modules["TTS.tts.configs.xtts_config"] = importlib.import_module("TTS_my.TTS.tts.configs.xtts_config")
+sys.modules["TTS.tts.models"] = importlib.import_module("TTS_my.TTS.tts.models")
+sys.modules["TTS.tts.models.xtts"] = importlib.import_module("TTS_my.TTS.tts.models.xtts")
+sys.modules["TTS.utils"] = importlib.import_module("TTS_my.TTS.utils")
+sys.modules["TTS.utils.io"] = importlib.import_module("TTS_my.TTS.utils.io")
+
+
+from TTS_my.TTS.tts.layers.xtts.dvae import DiscreteVAE
+from TTS_my.TTS.tts.layers.tortoise.arch_utils import TorchMelSpectrogram
 from torch.utils.data import DataLoader
-from TTS.tts.layers.xtts.trainer.dvae_dataset import DVAEDataset
+from TTS_my.TTS.tts.layers.xtts.trainer.dvae_dataset import DVAEDataset
 from torch.optim import Adam
 from torch.nn.utils import clip_grad_norm_
 
 from tqdm import tqdm
-from TTS.tts.datasets import load_tts_samples
-from TTS.config.shared_configs import BaseDatasetConfig
+from TTS_my.TTS.tts.datasets import load_tts_samples
+from TTS_my.TTS.config.shared_configs import BaseDatasetConfig
 
 from dataclasses import dataclass, field
 from typing import Optional
