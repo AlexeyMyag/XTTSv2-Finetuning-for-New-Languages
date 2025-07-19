@@ -215,7 +215,7 @@ def caltat(root_path, meta_file, **kwargs):  # pylint: disable=unused-argument
             wav_file = cols[0]
             text = cols[1]
             items.append({"text": text, "audio_file": wav_file, "speaker_name": speaker_name, "root_path": root_path})
-    return items
+    return items[:1000]
 
 
 def ljspeech_test(root_path, meta_file, **kwargs):  # pylint: disable=unused-argument
