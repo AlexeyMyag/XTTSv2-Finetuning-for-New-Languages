@@ -1,5 +1,5 @@
 import torch
-# import wandb
+import wandb
 from TTS.tts.layers.xtts.dvae import DiscreteVAE
 from TTS.tts.layers.tortoise.arch_utils import TorchMelSpectrogram
 from torch.utils.data import DataLoader
@@ -126,8 +126,8 @@ def train(output_path, train_csv_path, eval_csv_path="", language="en", lr=5e-6,
     torch.set_grad_enabled(True)
     dvae.train()
 
-    # wandb.init(project = 'train_dvae')
-    # wandb.watch(dvae)
+    wandb.init(project = 'train_dvae2')
+    wandb.watch(dvae)
 
     def to_cuda(x: torch.Tensor) -> torch.Tensor:
         if x is None:
@@ -180,7 +180,7 @@ def train(output_path, train_csv_path, eval_csv_path="", language="en", lr=5e-6,
                 'recon_loss': recon_loss.item(),
                 'commit_loss': commitment_loss.item()}
             print(f"epoch: {i}", print(f"step: {cur_step}"), f'loss - {total_loss.item()}', f'recon_loss - {recon_loss.item()}', f'commit_loss - {commitment_loss.item()}')
-            # wandb.log(log)
+            wandb.log(log)
             torch.cuda.empty_cache()
         
         with torch.no_grad():
