@@ -1,7 +1,7 @@
 import torch
 
-from TTS.vocoder.layers.pqmf import PQMF
-from TTS.vocoder.models.melgan_generator import MelganGenerator
+from TTS_my.TTS.vocoder.layers.pqmf import PQMF
+from TTS_my.TTS.vocoder.models.melgan_generator import MelganGenerator
 
 
 class MultibandMelganGenerator(MelganGenerator):

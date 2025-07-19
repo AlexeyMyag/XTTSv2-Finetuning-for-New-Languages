@@ -9,13 +9,13 @@ from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from trainer.trainer_utils import get_optimizer, get_scheduler
 
-from TTS.utils.audio import AudioProcessor
-from TTS.utils.io import load_fsspec
-from TTS.vocoder.datasets.gan_dataset import GANDataset
-from TTS.vocoder.layers.losses import DiscriminatorLoss, GeneratorLoss
-from TTS.vocoder.models import setup_discriminator, setup_generator
-from TTS.vocoder.models.base_vocoder import BaseVocoder
-from TTS.vocoder.utils.generic_utils import plot_results
+from TTS_my.TTS.utils.audio import AudioProcessor
+from TTS_my.TTS.utils.io import load_fsspec
+from TTS_my.TTS.vocoder.datasets.gan_dataset import GANDataset
+from TTS_my.TTS.vocoder.layers.losses import DiscriminatorLoss, GeneratorLoss
+from TTS_my.TTS.vocoder.models import setup_discriminator, setup_generator
+from TTS_my.TTS.vocoder.models.base_vocoder import BaseVocoder
+from TTS_my.TTS.vocoder.utils.generic_utils import plot_results
 
 
 class GAN(BaseVocoder):
@@ -32,7 +32,7 @@ class GAN(BaseVocoder):
 
         Examples:
             Initializing the GAN model with HifiGAN generator and discriminator.
-            >>> from TTS.vocoder.configs import HifiganConfig
+            >>> from TTS_my.TTS.vocoder.configs import HifiganConfig
             >>> config = HifiganConfig()
             >>> model = GAN(config)
         """

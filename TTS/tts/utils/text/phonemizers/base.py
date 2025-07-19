@@ -1,7 +1,7 @@
 import abc
 from typing import List, Tuple
 
-from TTS.tts.utils.text.punctuation import Punctuation
+from TTS_my.TTS.tts.utils.text.punctuation import Punctuation
 
 
 class BasePhonemizer(abc.ABC):

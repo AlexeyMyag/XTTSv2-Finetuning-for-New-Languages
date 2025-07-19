@@ -6,16 +6,16 @@ import torch
 from coqpit import Coqpit
 from torch import nn
 
-from TTS.tts.layers.losses import TacotronLoss
-from TTS.tts.models.base_tts import BaseTTS
-from TTS.tts.utils.helpers import sequence_mask
-from TTS.tts.utils.speakers import SpeakerManager
-from TTS.tts.utils.synthesis import synthesis
-from TTS.tts.utils.text.tokenizer import TTSTokenizer
-from TTS.tts.utils.visual import plot_alignment, plot_spectrogram
-from TTS.utils.generic_utils import format_aux_input
-from TTS.utils.io import load_fsspec
-from TTS.utils.training import gradual_training_scheduler
+from TTS_my.TTS.tts.layers.losses import TacotronLoss
+from TTS_my.TTS.tts.models.base_tts import BaseTTS
+from TTS_my.TTS.tts.utils.helpers import sequence_mask
+from TTS_my.TTS.tts.utils.speakers import SpeakerManager
+from TTS_my.TTS.tts.utils.synthesis import synthesis
+from TTS_my.TTS.tts.utils.text.tokenizer import TTSTokenizer
+from TTS_my.TTS.tts.utils.visual import plot_alignment, plot_spectrogram
+from TTS_my.TTS.utils.generic_utils import format_aux_input
+from TTS_my.TTS.utils.io import load_fsspec
+from TTS_my.TTS.utils.training import gradual_training_scheduler
 
 
 class BaseTacotron(BaseTTS):
@@ -126,7 +126,7 @@ class BaseTacotron(BaseTTS):
     @staticmethod
     def init_from_config(config: Coqpit):
         """Initialize model from config."""
-        from TTS.utils.audio import AudioProcessor
+        from TTS_my.TTS.utils.audio import AudioProcessor
 
         ap = AudioProcessor.init_from_config(config)
         tokenizer = TTSTokenizer.init_from_config(config)

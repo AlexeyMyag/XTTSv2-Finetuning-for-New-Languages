@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Union
 import fsspec
 import torch
 
-from TTS.utils.generic_utils import get_user_data_dir
+from TTS_my.TTS.utils.generic_utils import get_user_data_dir
 
 
 class RenamingUnpickler(pickle_tts.Unpickler):
@@ -51,7 +51,8 @@ def load_fsspec(
             return torch.load(f, map_location=map_location, **kwargs)
     else:
         with fsspec.open(path, "rb") as f:
-            return torch.load(f, map_location=map_location, **kwargs)
+            print("AAAA", path, f, map_location, kwargs)
+            return torch.load(f, weights_only=False, map_location=map_location, **kwargs)
 
 
 def load_checkpoint(

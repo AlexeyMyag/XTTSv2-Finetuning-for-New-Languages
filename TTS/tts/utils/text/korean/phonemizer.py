@@ -1,6 +1,6 @@
 from jamo import hangul_to_jamo
 
-from TTS.tts.utils.text.korean.korean import normalize
+from TTS_my.TTS.tts.utils.text.korean.korean import normalize
 
 g2p = None
 

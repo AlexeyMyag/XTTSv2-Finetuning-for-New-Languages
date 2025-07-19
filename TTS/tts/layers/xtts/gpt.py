@@ -9,9 +9,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from transformers import GPT2Config
 
-from TTS.tts.layers.xtts.gpt_inference import GPT2InferenceModel
-from TTS.tts.layers.xtts.latent_encoder import ConditioningEncoder
-from TTS.tts.layers.xtts.perceiver_encoder import PerceiverResampler
+from TTS_my.TTS.tts.layers.xtts.gpt_inference import GPT2InferenceModel
+from TTS_my.TTS.tts.layers.xtts.latent_encoder import ConditioningEncoder
+from TTS_my.TTS.tts.layers.xtts.perceiver_encoder import PerceiverResampler
 
 
 def null_position_embeddings(range, dim):
@@ -184,63 +184,6 @@ class GPT(nn.Module):
             # XTTS v1
             self.prompt_embedding = nn.Embedding(self.num_audio_tokens, model_dim)
             self.prompt_pos_embedding = LearnedPositionEmbeddings(24 * 9, model_dim)
-    
-    def resize_text_embeddings(self, new_num_tokens: int):
-
-        old_embeddings_requires_grad = self.text_embedding.weight.requires_grad
-
-        old_num_tokens, old_embedding_dim = self.text_embedding.weight.size()
-        if old_num_tokens == new_num_tokens:
-            return
-        
-        new_embeddings = nn.Embedding(
-            new_num_tokens,
-            old_embedding_dim,
-            device=self.text_embedding.weight.device,
-            dtype=self.text_embedding.weight.dtype,
-        )
-
-        # numbers of tokens to copy
-        n = min(old_num_tokens, new_num_tokens)
-
-        new_embeddings.weight.data[:n, :] = self.text_embedding.weight.data[:n, :]
-
-        self.text_embedding.weight.data = new_embeddings.weight.data
-        self.text_embedding.num_embeddings = new_embeddings.weight.data.shape[0]
-        if self.text_embedding.padding_idx is not None and (new_num_tokens - 1) < self.text_embedding.padding_idx:
-            self.text_embedding.padding_idx = None
-
-        
-        self.text_embedding.requires_grad_(old_embeddings_requires_grad)
-
-    def resize_text_head(self, new_num_tokens: int): 
-        old_lm_head_requires_grad = self.text_head.weight.requires_grad
-
-        old_num_tokens, old_lm_head_dim = self.text_head.weight.size()
-
-        new_lm_head_shape = (old_lm_head_dim, new_num_tokens)
-        has_new_lm_head_bias = self.text_head.bias is not None
-
-        new_lm_head = nn.Linear(
-            *new_lm_head_shape,
-            bias=has_new_lm_head_bias,
-            device=self.text_head.weight.device,
-            dtype=self.text_head.weight.dtype,
-        )
-
-        num_tokens_to_copy = min(old_num_tokens, new_num_tokens)
-
-        new_lm_head.weight.data[:num_tokens_to_copy, :] = self.text_head.weight.data[:num_tokens_to_copy, :]
-
-        # Copy bias weights to new lm head
-        if has_new_lm_head_bias:
-            new_lm_head.bias.data[:num_tokens_to_copy] = self.text_head.bias.data[:num_tokens_to_copy]
-
-        self.text_head = new_lm_head
-
-        self.text_head.requires_grad_(old_lm_head_requires_grad)
-        pass
-
 
     def get_grad_norm_parameter_groups(self):
         return {
@@ -252,7 +195,7 @@ class GPT(nn.Module):
             "heads": list(self.text_head.parameters()) + list(self.mel_head.parameters()),
         }
 
-    def init_gpt_for_inference(self, kv_cache=True, use_deepspeed=False):
+    def init_gpt_for_inference(self, kv_cache=True, use_deepspeed=False, for_train: bool = False):
         seq_length = self.max_prompt_tokens + self.max_mel_tokens + self.max_text_tokens + 1
         gpt_config = GPT2Config(
             vocab_size=self.max_mel_tokens,
@@ -281,11 +224,30 @@ class GPT(nn.Module):
             self.ds_engine = deepspeed.init_inference(
                 model=self.gpt_inference.half(),  # Transformers models
                 mp_size=1,  # Number of GPU
-                dtype=torch.float32,  # desired data type of output
+                dtype=(torch.float16 if not for_train else torch.float32),  # desired data type of output
                 replace_method="auto",  # Lets DS autmatically identify the layer to replace
                 replace_with_kernel_inject=True,  # replace the model with the kernel injector
             )
+
             self.gpt_inference = self.ds_engine.module.eval()
+            # self.ds_engine = deepspeed.init_inference(
+            #     model=self.gpt_inference.half(),  # Transformers models
+            #     mp_size=1,  # Number of GPU
+            #     dtype=torch.half,  # desired data type of output
+            #     replace_method="auto",  # Lets DS autmatically identify the layer to replace
+            #     replace_with_kernel_inject=True,  # replace the model with the kernel injector
+            # )
+            # self.gpt_inference = self.ds_engine.module.eval().to(torch.half)
+            #
+            # import torch.nn as nn
+            #
+            # gpt_mod = self.ds_engine.module.eval().to(torch.half)
+            # for m in gpt_mod.modules():
+            #     if isinstance(m, nn.LayerNorm):
+            #         m.weight = nn.Parameter(m.weight.data.half())
+            #         m.bias = nn.Parameter(m.bias.data.half())
+            #
+            # self.gpt_inference = gpt_mod
 
     def set_inputs_and_targets(self, input, start_token, stop_token):
         inp = F.pad(input, (1, 0), value=start_token)

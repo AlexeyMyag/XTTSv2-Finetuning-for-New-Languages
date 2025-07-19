@@ -1,8 +1,8 @@
 import torch
 from torch import nn
 
-from TTS.tts.layers.generic.normalization import ActNorm
-from TTS.tts.layers.glow_tts.glow import CouplingBlock, InvConvNear
+from TTS_my.TTS.tts.layers.generic.normalization import ActNorm
+from TTS_my.TTS.tts.layers.glow_tts.glow import CouplingBlock, InvConvNear
 
 
 def squeeze(x, x_mask=None, num_sqz=2):

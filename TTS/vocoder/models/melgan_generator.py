@@ -2,8 +2,8 @@ import torch
 from torch import nn
 from torch.nn.utils.parametrizations import weight_norm
 
-from TTS.utils.io import load_fsspec
-from TTS.vocoder.layers.melgan import ResidualStack
+from TTS_my.TTS.utils.io import load_fsspec
+from TTS_my.TTS.vocoder.layers.melgan import ResidualStack
 
 
 class MelganGenerator(nn.Module):

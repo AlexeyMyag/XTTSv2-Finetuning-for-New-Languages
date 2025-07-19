@@ -11,9 +11,9 @@ from urllib.parse import parse_qs
 
 from flask import Flask, render_template, render_template_string, request, send_file
 
-from TTS.config import load_config
-from TTS.utils.manage import ModelManager
-from TTS.utils.synthesizer import Synthesizer
+from TTS_my.TTS.config import load_config
+from TTS_my.TTS.utils.manage import ModelManager
+from TTS_my.TTS.utils.synthesizer import Synthesizer
 
 
 def create_argparser():

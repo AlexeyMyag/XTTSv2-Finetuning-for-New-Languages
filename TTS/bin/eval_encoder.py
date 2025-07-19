@@ -4,9 +4,9 @@ from argparse import RawTextHelpFormatter
 import torch
 from tqdm import tqdm
 
-from TTS.config import load_config
-from TTS.tts.datasets import load_tts_samples
-from TTS.tts.utils.speakers import SpeakerManager
+from TTS_my.TTS.config import load_config
+from TTS_my.TTS.tts.datasets import load_tts_samples
+from TTS_my.TTS.tts.utils.speakers import SpeakerManager
 
 
 def compute_encoder_accuracy(dataset_items, encoder_manager):

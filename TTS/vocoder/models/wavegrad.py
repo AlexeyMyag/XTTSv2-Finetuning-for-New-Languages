@@ -11,11 +11,11 @@ from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from trainer.trainer_utils import get_optimizer, get_scheduler
 
-from TTS.utils.io import load_fsspec
-from TTS.vocoder.datasets import WaveGradDataset
-from TTS.vocoder.layers.wavegrad import Conv1d, DBlock, FiLM, UBlock
-from TTS.vocoder.models.base_vocoder import BaseVocoder
-from TTS.vocoder.utils.generic_utils import plot_results
+from TTS_my.TTS.utils.io import load_fsspec
+from TTS_my.TTS.vocoder.datasets import WaveGradDataset
+from TTS_my.TTS.vocoder.layers.wavegrad import Conv1d, DBlock, FiLM, UBlock
+from TTS_my.TTS.vocoder.models.base_vocoder import BaseVocoder
+from TTS_my.TTS.vocoder.utils.generic_utils import plot_results
 
 
 @dataclass
@@ -40,7 +40,7 @@ class Wavegrad(BaseVocoder):
     Examples:
         Initializing the model.
 
-        >>> from TTS.vocoder.configs import WavegradConfig
+        >>> from TTS_my.TTS.vocoder.configs import WavegradConfig
         >>> config = WavegradConfig()
         >>> model = Wavegrad(config)
 

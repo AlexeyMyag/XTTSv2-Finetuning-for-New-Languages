@@ -6,7 +6,7 @@ from torch.nn import functional as F
 from torch.nn.utils.parametrizations import weight_norm
 from torch.nn.utils.parametrize import remove_parametrizations
 
-from TTS.utils.io import load_fsspec
+from TTS_my.TTS.utils.io import load_fsspec
 
 LRELU_SLOPE = 0.1
 
@@ -415,6 +415,8 @@ class PreEmphasis(nn.Module):
         assert len(x.size()) == 2
 
         x = torch.nn.functional.pad(x.unsqueeze(1), (1, 0), "reflect")
+        # x = x.to(self.filter.dtype)
+
         return torch.nn.functional.conv1d(x, self.filter).squeeze(1)
 
 

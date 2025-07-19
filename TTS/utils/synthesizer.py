@@ -7,19 +7,19 @@ import pysbd
 import torch
 from torch import nn
 
-from TTS.config import load_config
-from TTS.tts.configs.vits_config import VitsConfig
-from TTS.tts.models import setup_model as setup_tts_model
-from TTS.tts.models.vits import Vits
+from TTS_my.TTS.config import load_config
+from TTS_my.TTS.tts.configs.vits_config import VitsConfig
+from TTS_my.TTS.tts.models import setup_model as setup_tts_model
+from TTS_my.TTS.tts.models.vits import Vits
 
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
-from TTS.tts.utils.synthesis import synthesis, transfer_voice, trim_silence
-from TTS.utils.audio import AudioProcessor
-from TTS.utils.audio.numpy_transforms import save_wav
-from TTS.vc.models import setup_model as setup_vc_model
-from TTS.vocoder.models import setup_model as setup_vocoder_model
-from TTS.vocoder.utils.generic_utils import interpolate_vocoder_input
+from TTS_my.TTS.tts.utils.synthesis import synthesis, transfer_voice, trim_silence
+from TTS_my.TTS.utils.audio import AudioProcessor
+from TTS_my.TTS.utils.audio.numpy_transforms import save_wav
+from TTS_my.TTS.vc.models import setup_model as setup_vc_model
+from TTS_my.TTS.vocoder.models import setup_model as setup_vocoder_model
+from TTS_my.TTS.vocoder.utils.generic_utils import interpolate_vocoder_input
 
 
 class Synthesizer(nn.Module):

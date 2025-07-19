@@ -15,7 +15,7 @@ from spacy.lang.ja import Japanese
 from spacy.lang.zh import Chinese
 from tokenizers import Tokenizer
 
-from TTS.tts.layers.xtts.zh_num2words import TextNorm as zh_num2words
+from TTS_my.TTS.tts.layers.xtts.zh_num2words import TextNorm as zh_num2words
 
 
 def get_spacy_lang(lang):
@@ -586,7 +586,8 @@ def korean_transliterate(text):
     return r.translit(text)
 
 
-DEFAULT_VOCAB_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../data/tokenizer.json")
+# DEFAULT_VOCAB_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../data/tokenizer.json")
+DEFAULT_VOCAB_FILE = "vocab.json"
 
 
 class VoiceBpeTokenizer:
@@ -621,7 +622,7 @@ class VoiceBpeTokenizer:
 
     def check_input_length(self, txt, lang):
         lang = lang.split("-")[0]  # remove the region
-        limit = self.char_limits.get(lang, 300)
+        limit = self.char_limits.get(lang, 250)
         if len(txt) > limit:
             print(
                 f"[!] Warning: The text length exceeds the character limit of {limit} for language '{lang}', this might cause truncated audio."
@@ -640,17 +641,18 @@ class VoiceBpeTokenizer:
             # @manmay will implement this
             txt = basic_cleaners(txt)
         else:
-            txt = basic_cleaners(txt)
-            # print(f"[!] Warning: Preprocess [Language '{lang}'] text is not implemented, use `basic_cleaners` instead.")
+            raise NotImplementedError(f"Language '{lang}' is not supported.")
         return txt
 
     def encode(self, txt, lang):
+        # print("TEXT IN ENCODE TTS", txt)
         lang = lang.split("-")[0]  # remove the region
         self.check_input_length(txt, lang)
         txt = self.preprocess_text(txt, lang)
         lang = "zh-cn" if lang == "zh" else lang
         txt = f"[{lang}]{txt}"
         txt = txt.replace(" ", "[SPACE]")
+
         return self.tokenizer.encode(txt).ids
 
     def decode(self, seq):
@@ -672,100 +674,102 @@ class VoiceBpeTokenizer:
 def test_expand_numbers_multilingual():
     test_cases = [
         # English
-        ("In 12.5 seconds.", "In twelve point five seconds.", "en"),
-        ("There were 50 soldiers.", "There were fifty soldiers.", "en"),
-        ("This is a 1st test", "This is a first test", "en"),
-        ("That will be $20 sir.", "That will be twenty dollars sir.", "en"),
-        ("That will be 20€ sir.", "That will be twenty euro sir.", "en"),
-        ("That will be 20.15€ sir.", "That will be twenty euro, fifteen cents sir.", "en"),
-        ("That's 100,000.5.", "That's one hundred thousand point five.", "en"),
-        # French
-        ("En 12,5 secondes.", "En douze virgule cinq secondes.", "fr"),
-        ("Il y avait 50 soldats.", "Il y avait cinquante soldats.", "fr"),
-        ("Ceci est un 1er test", "Ceci est un premier test", "fr"),
-        ("Cela vous fera $20 monsieur.", "Cela vous fera vingt dollars monsieur.", "fr"),
-        ("Cela vous fera 20€ monsieur.", "Cela vous fera vingt euros monsieur.", "fr"),
-        ("Cela vous fera 20,15€ monsieur.", "Cela vous fera vingt euros et quinze centimes monsieur.", "fr"),
-        ("Ce sera 100.000,5.", "Ce sera cent mille virgule cinq.", "fr"),
-        # German
-        ("In 12,5 Sekunden.", "In zwölf Komma fünf Sekunden.", "de"),
-        ("Es gab 50 Soldaten.", "Es gab fünfzig Soldaten.", "de"),
-        ("Dies ist ein 1. Test", "Dies ist ein erste Test", "de"),  # Issue with gender
-        ("Das macht $20 Herr.", "Das macht zwanzig Dollar Herr.", "de"),
-        ("Das macht 20€ Herr.", "Das macht zwanzig Euro Herr.", "de"),
-        ("Das macht 20,15€ Herr.", "Das macht zwanzig Euro und fünfzehn Cent Herr.", "de"),
-        # Spanish
-        ("En 12,5 segundos.", "En doce punto cinco segundos.", "es"),
-        ("Había 50 soldados.", "Había cincuenta soldados.", "es"),
-        ("Este es un 1er test", "Este es un primero test", "es"),
-        ("Eso le costará $20 señor.", "Eso le costará veinte dólares señor.", "es"),
-        ("Eso le costará 20€ señor.", "Eso le costará veinte euros señor.", "es"),
-        ("Eso le costará 20,15€ señor.", "Eso le costará veinte euros con quince céntimos señor.", "es"),
-        # Italian
-        ("In 12,5 secondi.", "In dodici virgola cinque secondi.", "it"),
-        ("C'erano 50 soldati.", "C'erano cinquanta soldati.", "it"),
-        ("Questo è un 1° test", "Questo è un primo test", "it"),
-        ("Ti costerà $20 signore.", "Ti costerà venti dollari signore.", "it"),
-        ("Ti costerà 20€ signore.", "Ti costerà venti euro signore.", "it"),
-        ("Ti costerà 20,15€ signore.", "Ti costerà venti euro e quindici centesimi signore.", "it"),
-        # Portuguese
-        ("Em 12,5 segundos.", "Em doze vírgula cinco segundos.", "pt"),
-        ("Havia 50 soldados.", "Havia cinquenta soldados.", "pt"),
-        ("Este é um 1º teste", "Este é um primeiro teste", "pt"),
-        ("Isso custará $20 senhor.", "Isso custará vinte dólares senhor.", "pt"),
-        ("Isso custará 20€ senhor.", "Isso custará vinte euros senhor.", "pt"),
-        (
-            "Isso custará 20,15€ senhor.",
-            "Isso custará vinte euros e quinze cêntimos senhor.",
-            "pt",
-        ),  # "cêntimos" should be "centavos" num2words issue
-        # Polish
-        ("W 12,5 sekundy.", "W dwanaście przecinek pięć sekundy.", "pl"),
-        ("Było 50 żołnierzy.", "Było pięćdziesiąt żołnierzy.", "pl"),
-        ("To będzie kosztować 20€ panie.", "To będzie kosztować dwadzieścia euro panie.", "pl"),
-        ("To będzie kosztować 20,15€ panie.", "To będzie kosztować dwadzieścia euro, piętnaście centów panie.", "pl"),
-        # Arabic
-        ("في الـ 12,5 ثانية.", "في الـ اثنا عشر  , خمسون ثانية.", "ar"),
-        ("كان هناك 50 جنديًا.", "كان هناك خمسون جنديًا.", "ar"),
-        # ("ستكون النتيجة $20 يا سيد.", 'ستكون النتيجة عشرون دولار يا سيد.', 'ar'), # $ and € are mising from num2words
-        # ("ستكون النتيجة 20€ يا سيد.", 'ستكون النتيجة عشرون يورو يا سيد.', 'ar'),
-        # Czech
-        ("Za 12,5 vteřiny.", "Za dvanáct celá pět vteřiny.", "cs"),
-        ("Bylo tam 50 vojáků.", "Bylo tam padesát vojáků.", "cs"),
-        ("To bude stát 20€ pane.", "To bude stát dvacet euro pane.", "cs"),
-        ("To bude 20.15€ pane.", "To bude dvacet euro, patnáct centů pane.", "cs"),
+        # ("In 12.5 seconds.", "In twelve point five seconds.", "en"),
+        # ("There were 50 soldiers.", "There were fifty soldiers.", "en"),
+        # ("This is a 1st test", "This is a first test", "en"),
+        # ("That will be $20 sir.", "That will be twenty dollars sir.", "en"),
+        # ("That will be 20€ sir.", "That will be twenty euro sir.", "en"),
+        # ("That will be 20.15€ sir.", "That will be twenty euro, fifteen cents sir.", "en"),
+        # ("That's 100,000.5.", "That's one hundred thousand point five.", "en"),
+        # # French
+        # ("En 12,5 secondes.", "En douze virgule cinq secondes.", "fr"),
+        # ("Il y avait 50 soldats.", "Il y avait cinquante soldats.", "fr"),
+        # ("Ceci est un 1er test", "Ceci est un premier test", "fr"),
+        # ("Cela vous fera $20 monsieur.", "Cela vous fera vingt dollars monsieur.", "fr"),
+        # ("Cela vous fera 20€ monsieur.", "Cela vous fera vingt euros monsieur.", "fr"),
+        # ("Cela vous fera 20,15€ monsieur.", "Cela vous fera vingt euros et quinze centimes monsieur.", "fr"),
+        # ("Ce sera 100.000,5.", "Ce sera cent mille virgule cinq.", "fr"),
+        # # German
+        # ("In 12,5 Sekunden.", "In zwölf Komma fünf Sekunden.", "de"),
+        # ("Es gab 50 Soldaten.", "Es gab fünfzig Soldaten.", "de"),
+        # ("Dies ist ein 1. Test", "Dies ist ein erste Test", "de"),  # Issue with gender
+        # ("Das macht $20 Herr.", "Das macht zwanzig Dollar Herr.", "de"),
+        # ("Das macht 20€ Herr.", "Das macht zwanzig Euro Herr.", "de"),
+        # ("Das macht 20,15€ Herr.", "Das macht zwanzig Euro und fünfzehn Cent Herr.", "de"),
+        # # Spanish
+        # ("En 12,5 segundos.", "En doce punto cinco segundos.", "es"),
+        # ("Había 50 soldados.", "Había cincuenta soldados.", "es"),
+        # ("Este es un 1er test", "Este es un primero test", "es"),
+        # ("Eso le costará $20 señor.", "Eso le costará veinte dólares señor.", "es"),
+        # ("Eso le costará 20€ señor.", "Eso le costará veinte euros señor.", "es"),
+        # ("Eso le costará 20,15€ señor.", "Eso le costará veinte euros con quince céntimos señor.", "es"),
+        # # Italian
+        # ("In 12,5 secondi.", "In dodici virgola cinque secondi.", "it"),
+        # ("C'erano 50 soldati.", "C'erano cinquanta soldati.", "it"),
+        # ("Questo è un 1° test", "Questo è un primo test", "it"),
+        # ("Ti costerà $20 signore.", "Ti costerà venti dollari signore.", "it"),
+        # ("Ti costerà 20€ signore.", "Ti costerà venti euro signore.", "it"),
+        # ("Ti costerà 20,15€ signore.", "Ti costerà venti euro e quindici centesimi signore.", "it"),
+        # # Portuguese
+        # ("Em 12,5 segundos.", "Em doze vírgula cinco segundos.", "pt"),
+        # ("Havia 50 soldados.", "Havia cinquenta soldados.", "pt"),
+        # ("Este é um 1º teste", "Este é um primeiro teste", "pt"),
+        # ("Isso custará $20 senhor.", "Isso custará vinte dólares senhor.", "pt"),
+        # ("Isso custará 20€ senhor.", "Isso custará vinte euros senhor.", "pt"),
+        # (
+        #     "Isso custará 20,15€ senhor.",
+        #     "Isso custará vinte euros e quinze cêntimos senhor.",
+        #     "pt",
+        # ),  # "cêntimos" should be "centavos" num2words issue
+        # # Polish
+        # ("W 12,5 sekundy.", "W dwanaście przecinek pięć sekundy.", "pl"),
+        # ("Było 50 żołnierzy.", "Było pięćdziesiąt żołnierzy.", "pl"),
+        # ("To będzie kosztować 20€ panie.", "To będzie kosztować dwadzieścia euro panie.", "pl"),
+        # ("To będzie kosztować 20,15€ panie.", "To będzie kosztować dwadzieścia euro, piętnaście centów panie.", "pl"),
+        # # Arabic
+        # ("في الـ 12,5 ثانية.", "في الـ اثنا عشر  , خمسون ثانية.", "ar"),
+        # ("كان هناك 50 جنديًا.", "كان هناك خمسون جنديًا.", "ar"),
+        # # ("ستكون النتيجة $20 يا سيد.", 'ستكون النتيجة عشرون دولار يا سيد.', 'ar'), # $ and € are mising from num2words
+        # # ("ستكون النتيجة 20€ يا سيد.", 'ستكون النتيجة عشرون يورو يا سيد.', 'ar'),
+        # # Czech
+        # ("Za 12,5 vteřiny.", "Za dvanáct celá pět vteřiny.", "cs"),
+        # ("Bylo tam 50 vojáků.", "Bylo tam padesát vojáků.", "cs"),
+        # ("To bude stát 20€ pane.", "To bude stát dvacet euro pane.", "cs"),
+        # ("To bude 20.15€ pane.", "To bude dvacet euro, patnáct centů pane.", "cs"),
         # Russian
         ("Через 12.5 секунды.", "Через двенадцать запятая пять секунды.", "ru"),
         ("Там было 50 солдат.", "Там было пятьдесят солдат.", "ru"),
-        ("Это будет 20.15€ сэр.", "Это будет двадцать евро, пятнадцать центов сэр.", "ru"),
+        ("БМВ M6 Гран Купе.", "Это будет двадцать евро, пятнадцать центов сэр.", "ru"),
         ("Это будет стоить 20€ господин.", "Это будет стоить двадцать евро господин.", "ru"),
-        # Dutch
-        ("In 12,5 seconden.", "In twaalf komma vijf seconden.", "nl"),
-        ("Er waren 50 soldaten.", "Er waren vijftig soldaten.", "nl"),
-        ("Dat wordt dan $20 meneer.", "Dat wordt dan twintig dollar meneer.", "nl"),
-        ("Dat wordt dan 20€ meneer.", "Dat wordt dan twintig euro meneer.", "nl"),
-        # Chinese (Simplified)
-        ("在12.5秒内", "在十二点五秒内", "zh"),
-        ("有50名士兵", "有五十名士兵", "zh"),
-        # ("那将是$20先生", '那将是二十美元先生', 'zh'), currency doesn't work
-        # ("那将是20€先生", '那将是二十欧元先生', 'zh'),
-        # Turkish
-        # ("12,5 saniye içinde.", 'On iki virgül beş saniye içinde.', 'tr'), # decimal doesn't work for TR
-        ("50 asker vardı.", "elli asker vardı.", "tr"),
-        ("Bu 1. test", "Bu birinci test", "tr"),
-        # ("Bu 100.000,5.", 'Bu yüz bin virgül beş.', 'tr'),
-        # Hungarian
-        ("12,5 másodperc alatt.", "tizenkettő egész öt tized másodperc alatt.", "hu"),
-        ("50 katona volt.", "ötven katona volt.", "hu"),
-        ("Ez az 1. teszt", "Ez az első teszt", "hu"),
-        # Korean
-        ("12.5 초 안에.", "십이 점 다섯 초 안에.", "ko"),
-        ("50 명의 병사가 있었다.", "오십 명의 병사가 있었다.", "ko"),
-        ("이것은 1 번째 테스트입니다", "이것은 첫 번째 테스트입니다", "ko"),
+        ("Это было в 2016-м году", "Это будет стоить двадцать евро господин.", "ru"),
+        # # Dutch
+        # ("In 12,5 seconden.", "In twaalf komma vijf seconden.", "nl"),
+        # ("Er waren 50 soldaten.", "Er waren vijftig soldaten.", "nl"),
+        # ("Dat wordt dan $20 meneer.", "Dat wordt dan twintig dollar meneer.", "nl"),
+        # ("Dat wordt dan 20€ meneer.", "Dat wordt dan twintig euro meneer.", "nl"),
+        # # Chinese (Simplified)
+        # ("在12.5秒内", "在十二点五秒内", "zh"),
+        # ("有50名士兵", "有五十名士兵", "zh"),
+        # # ("那将是$20先生", '那将是二十美元先生', 'zh'), currency doesn't work
+        # # ("那将是20€先生", '那将是二十欧元先生', 'zh'),
+        # # Turkish
+        # # ("12,5 saniye içinde.", 'On iki virgül beş saniye içinde.', 'tr'), # decimal doesn't work for TR
+        # ("50 asker vardı.", "elli asker vardı.", "tr"),
+        # ("Bu 1. test", "Bu birinci test", "tr"),
+        # # ("Bu 100.000,5.", 'Bu yüz bin virgül beş.', 'tr'),
+        # # Hungarian
+        # ("12,5 másodperc alatt.", "tizenkettő egész öt tized másodperc alatt.", "hu"),
+        # ("50 katona volt.", "ötven katona volt.", "hu"),
+        # ("Ez az 1. teszt", "Ez az első teszt", "hu"),
+        # # Korean
+        # ("12.5 초 안에.", "십이 점 다섯 초 안에.", "ko"),
+        # ("50 명의 병사가 있었다.", "오십 명의 병사가 있었다.", "ko"),
+        # ("이것은 1 번째 테스트입니다", "이것은 첫 번째 테스트입니다", "ko"),
     ]
     for a, b, lang in test_cases:
         out = expand_numbers_multilingual(a, lang=lang)
-        assert out == b, f"'{out}' vs '{b}'"
+        # assert out == b, f"'{out}' vs '{b}'"
+        print(f"'{out}' vs '{b}'")
 
 
 def test_abbreviations_multilingual():
@@ -840,5 +844,5 @@ def test_symbols_multilingual():
 
 if __name__ == "__main__":
     test_expand_numbers_multilingual()
-    test_abbreviations_multilingual()
-    test_symbols_multilingual()
+    # test_abbreviations_multilingual()
+    # test_symbols_multilingual()

@@ -1,4 +1,5 @@
 import os
+import uuid
 from dataclasses import dataclass
 
 import librosa
@@ -7,13 +8,13 @@ import torch.nn.functional as F
 import torchaudio
 from coqpit import Coqpit
 
-from TTS.tts.layers.xtts.gpt import GPT
-from TTS.tts.layers.xtts.hifigan_decoder import HifiDecoder
-from TTS.tts.layers.xtts.stream_generator import init_stream_support
-from TTS.tts.layers.xtts.tokenizer import VoiceBpeTokenizer, split_sentence
-from TTS.tts.layers.xtts.xtts_manager import SpeakerManager, LanguageManager
-from TTS.tts.models.base_tts import BaseTTS
-from TTS.utils.io import load_fsspec
+from TTS_my.TTS.tts.layers.xtts.gpt import GPT
+from TTS_my.TTS.tts.layers.xtts.hifigan_decoder import HifiDecoder
+from TTS_my.TTS.tts.layers.xtts.stream_generator import init_stream_support
+from TTS_my.TTS.tts.layers.xtts.tokenizer import VoiceBpeTokenizer, split_sentence
+from TTS_my.TTS.tts.layers.xtts.xtts_manager import SpeakerManager, LanguageManager
+from TTS_my.TTS.tts.models.base_tts import BaseTTS
+from TTS_my.TTS.utils.io import load_fsspec
 
 init_stream_support()
 
@@ -194,8 +195,8 @@ class Xtts(BaseTTS):
     ❗ Currently it only supports inference.
 
     Examples:
-        >>> from TTS.tts.configs.xtts_config import XttsConfig
-        >>> from TTS.tts.models.xtts import Xtts
+        >>> from TTS_my.TTS.tts.configs.xtts_config import XttsConfig
+        >>> from TTS_my.TTS.tts.models.xtts import Xtts
         >>> config = XttsConfig()
         >>> model = Xtts.inif_from_config(config)
         >>> model.load_checkpoint(config, checkpoint_dir="paths/to/models_dir/", eval=True)
@@ -268,7 +269,19 @@ class Xtts(BaseTTS):
         if sr != 22050:
             audio = torchaudio.functional.resample(audio, sr, 22050)
         if length > 0:
+            print("LENGTH", length)
+
             audio = audio[:, : 22050 * length]
+
+            # audio_cpu = audio.detach().cpu()
+            #
+            # # и сохранить:
+            # output_path = "/data/sliced_audio_length_6.wav"
+            # sample_rate = 22050  # та же частота, по которой вы режете
+            #
+            # torchaudio.save(output_path, audio_cpu, sample_rate)
+            # print(f"Срезанное аудио сохранено в {output_path}")
+
         if self.args.gpt_use_perceiver_resampler:
             style_embs = []
             for i in range(0, audio.shape[1], 22050 * chunk_length):
@@ -354,8 +367,19 @@ class Xtts(BaseTTS):
         audios = []
         speaker_embedding = None
         for file_path in audio_paths:
+            print("FILE PATH", file_path)
             audio = load_audio(file_path, load_sr)
             audio = audio[:, : load_sr * max_ref_length].to(self.device)
+
+            # audio_cpu = audio.detach().cpu()
+            #
+            # # и сохранить:
+            # output_path = "sliced_audio_length_30.wav"
+            # sample_rate = 22050  # та же частота, по которой вы режете
+            #
+            # torchaudio.save(output_path, audio_cpu, sample_rate)
+            # print(f"Срезанное аудио сохранено в {output_path}")
+
             if sound_norm_refs:
                 audio = (audio / torch.abs(audio).max()) * 0.75
             if librosa_trim_db is not None:
@@ -363,6 +387,7 @@ class Xtts(BaseTTS):
 
             # compute latents for the decoder
             speaker_embedding = self.get_speaker_embedding(audio, load_sr)
+            print("SPEAKER EMBEDDING")
             speaker_embeddings.append(speaker_embedding)
 
             audios.append(audio)
@@ -523,7 +548,7 @@ class Xtts(BaseTTS):
         gpt_cond_latent = gpt_cond_latent.to(self.device)
         speaker_embedding = speaker_embedding.to(self.device)
         if enable_text_splitting:
-            text = split_sentence(text, language, self.tokenizer.char_limits.get(language, 250))
+            text = split_sentence(text, language, self.tokenizer.char_limits[language])
         else:
             text = [text]
 
@@ -531,7 +556,11 @@ class Xtts(BaseTTS):
         gpt_latents_list = []
         for sent in text:
             sent = sent.strip().lower()
+
+            # uniq = uuid.uuid4()
+            # print(uniq, "INFERENCE TESTS", sent)
             text_tokens = torch.IntTensor(self.tokenizer.encode(sent, lang=language)).unsqueeze(0).to(self.device)
+            # print(uniq, "INFERENCE TOKENS", text_tokens)
 
             assert (
                 text_tokens.shape[-1] < self.args.gpt_max_text_tokens
@@ -553,7 +582,6 @@ class Xtts(BaseTTS):
                     output_attentions=False,
                     **hf_generate_kwargs,
                 )
-
                 expected_output_len = torch.tensor(
                     [gpt_codes.shape[-1] * self.gpt.code_stride_len], device=text_tokens.device
                 )
@@ -576,8 +604,6 @@ class Xtts(BaseTTS):
 
                 gpt_latents_list.append(gpt_latents.cpu())
                 wavs.append(self.hifigan_decoder(gpt_latents, g=speaker_embedding).cpu().squeeze())
-
-            torch.cuda.empty_cache()
 
         return {
             "wav": torch.cat(wavs, dim=0).numpy(),
@@ -636,7 +662,7 @@ class Xtts(BaseTTS):
         gpt_cond_latent = gpt_cond_latent.to(self.device)
         speaker_embedding = speaker_embedding.to(self.device)
         if enable_text_splitting:
-            text = split_sentence(text, language, self.tokenizer.char_limits.get(language, 250))
+            text = split_sentence(text, language, self.tokenizer.char_limits[language])
         else:
             text = [text]
 
@@ -740,6 +766,7 @@ class Xtts(BaseTTS):
         eval=True,
         strict=True,
         use_deepspeed=False,
+        for_train=False,
         speaker_file_path=None,
     ):
         """
@@ -759,13 +786,12 @@ class Xtts(BaseTTS):
 
         model_path = checkpoint_path or os.path.join(checkpoint_dir, "model.pth")
         vocab_path = vocab_path or os.path.join(checkpoint_dir, "vocab.json")
-
-        if speaker_file_path is None and checkpoint_dir is not None:
-            speaker_file_path = os.path.join(checkpoint_dir, "speakers_xtts.pth")
+        print("VOCAB PATH", vocab_path)
+        speaker_file_path = speaker_file_path or os.path.join(checkpoint_dir, "speakers_xtts.pth")
 
         self.language_manager = LanguageManager(config)
         self.speaker_manager = None
-        if speaker_file_path is not None and os.path.exists(speaker_file_path):
+        if os.path.exists(speaker_file_path):
             self.speaker_manager = SpeakerManager(speaker_file_path)
 
         if os.path.exists(vocab_path):
@@ -785,7 +811,7 @@ class Xtts(BaseTTS):
 
         if eval:
             self.hifigan_decoder.eval()
-            self.gpt.init_gpt_for_inference(kv_cache=self.args.kv_cache, use_deepspeed=use_deepspeed)
+            self.gpt.init_gpt_for_inference(kv_cache=self.args.kv_cache, use_deepspeed=use_deepspeed, for_train=for_train)
             self.gpt.eval()
 
     def train_step(self):

@@ -1,6 +1,6 @@
 from torch import nn
 
-from TTS.tts.layers.generic.res_conv_bn import Conv1dBN
+from TTS_my.TTS.tts.layers.generic.res_conv_bn import Conv1dBN
 
 
 class DurationPredictor(nn.Module):

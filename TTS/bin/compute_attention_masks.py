@@ -8,12 +8,12 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from TTS.config import load_config
-from TTS.tts.datasets.TTSDataset import TTSDataset
-from TTS.tts.models import setup_model
-from TTS.tts.utils.text.characters import make_symbols, phonemes, symbols
-from TTS.utils.audio import AudioProcessor
-from TTS.utils.io import load_checkpoint
+from TTS_my.TTS.config import load_config
+from TTS_my.TTS.tts.datasets.TTSDataset import TTSDataset
+from TTS_my.TTS.tts.models import setup_model
+from TTS_my.TTS.tts.utils.text.characters import make_symbols, phonemes, symbols
+from TTS_my.TTS.utils.audio import AudioProcessor
+from TTS_my.TTS.utils.io import load_checkpoint
 
 if __name__ == "__main__":
     # pylint: disable=bad-option-value
@@ -47,7 +47,7 @@ Example run:
         type=str,
         default="",
         required=True,
-        help="Target dataset processor name from TTS.tts.dataset.preprocess.",
+        help="Target dataset processor name from TTS_my.TTS.tts.dataset.preprocess.",
     )
 
     parser.add_argument(

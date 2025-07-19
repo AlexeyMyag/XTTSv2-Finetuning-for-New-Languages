@@ -1,6 +1,6 @@
 from coqpit import Coqpit
 
-from TTS.model import BaseTrainerModel
+from TTS_my.TTS.model import BaseTrainerModel
 
 # pylint: skip-file
 

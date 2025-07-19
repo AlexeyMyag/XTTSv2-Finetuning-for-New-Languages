@@ -12,15 +12,15 @@ from trainer.io import copy_model_files, save_best_model, save_checkpoint
 from trainer.torch import NoamLR
 from trainer.trainer_utils import get_optimizer
 
-from TTS.encoder.dataset import EncoderDataset
-from TTS.encoder.utils.generic_utils import setup_encoder_model
-from TTS.encoder.utils.training import init_training
-from TTS.encoder.utils.visual import plot_embeddings
-from TTS.tts.datasets import load_tts_samples
-from TTS.utils.audio import AudioProcessor
-from TTS.utils.generic_utils import count_parameters, remove_experiment_folder
-from TTS.utils.samplers import PerfectBatchSampler
-from TTS.utils.training import check_update
+from TTS_my.TTS.encoder.dataset import EncoderDataset
+from TTS_my.TTS.encoder.utils.generic_utils import setup_encoder_model
+from TTS_my.TTS.encoder.utils.training import init_training
+from TTS_my.TTS.encoder.utils.visual import plot_embeddings
+from TTS_my.TTS.tts.datasets import load_tts_samples
+from TTS_my.TTS.utils.audio import AudioProcessor
+from TTS_my.TTS.utils.generic_utils import count_parameters, remove_experiment_folder
+from TTS_my.TTS.utils.samplers import PerfectBatchSampler
+from TTS_my.TTS.utils.training import check_update
 
 torch.backends.cudnn.enabled = True
 torch.backends.cudnn.benchmark = True
@@ -125,7 +125,7 @@ def evaluation(model, criterion, data_loader, global_step):
 
 def train(model, optimizer, scheduler, criterion, data_loader, eval_data_loader, global_step):
     model.train()
-    best_loss = {"train_loss": None, "eval_loss": float("inf")}
+    best_loss = float("inf")
     avg_loader_time = 0
     end_time = time.time()
     for epoch in range(c.epochs):
@@ -248,7 +248,7 @@ def train(model, optimizer, scheduler, criterion, data_loader, eval_data_loader,
             )
             # save the best checkpoint
             best_loss = save_best_model(
-                {"train_loss": None, "eval_loss": eval_loss},
+                eval_loss,
                 best_loss,
                 c,
                 model,

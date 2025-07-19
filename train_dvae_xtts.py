@@ -60,8 +60,8 @@ def train(output_path, train_csv_path, eval_csv_path="", language="en", lr=5e-6,
     # os.makedirs(CHECKPOINTS_OUT_PATH, exist_ok=True)
 
     config_dataset = BaseDatasetConfig(
-        formatter="coqui",
-        dataset_name="large",
+        formatter="caltat",
+        dataset_name="caltat",
         path=os.path.dirname(train_csv_path),
         meta_file_train=os.path.basename(train_csv_path),
         meta_file_val=os.path.basename(eval_csv_path),
@@ -201,16 +201,24 @@ def train(output_path, train_csv_path, eval_csv_path="", language="en", lr=5e-6,
 
 
 if __name__ == "__main__":
-    parser = HfArgumentParser(DVAETrainerArgs)
+    # parser = HfArgumentParser(DVAETrainerArgs)
+    #
+    # args = parser.parse_args_into_dataclasses()[0]
 
-    args = parser.parse_args_into_dataclasses()[0]
+    language="ru"
+    train_csv_path="metadata_train.txt"
+    eval_csv_path="metadata_eval.txt"
+    output_path="outputs"
+    num_epochs=5
+    batch_size=512
+    lr=5e-6
 
     trainer_out_path = train(
-        language=args.language,
-        train_csv_path=args.train_csv_path,
-        eval_csv_path=args.eval_csv_path,
-        output_path=args.output_path,
-        num_epochs=args.num_epochs,
-        batch_size=args.batch_size,
-        lr=args.lr
+        language=language,
+        train_csv_path=train_csv_path,
+        eval_csv_path=eval_csv_path,
+        output_path=output_path,
+        num_epochs=num_epochs,
+        batch_size=batch_size,
+        lr=lr
     )

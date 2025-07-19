@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from torch.nn.utils.parametrize import remove_parametrizations
 
-from TTS.vocoder.layers.parallel_wavegan import ResidualBlock
+from TTS_my.TTS.vocoder.layers.parallel_wavegan import ResidualBlock
 
 
 class ParallelWaveganDiscriminator(nn.Module):

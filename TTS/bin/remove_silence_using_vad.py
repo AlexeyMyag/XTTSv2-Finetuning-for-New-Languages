@@ -7,7 +7,7 @@ import pathlib
 import torch
 from tqdm import tqdm
 
-from TTS.utils.vad import get_vad_model_and_utils, remove_silence
+from TTS_my.TTS.utils.vad import get_vad_model_and_utils, remove_silence
 
 torch.set_num_threads(1)
 

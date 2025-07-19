@@ -7,8 +7,8 @@ import numpy as np
 import torch
 from coqpit import Coqpit
 
-from TTS.config import get_from_config_or_model_args_with_default
-from TTS.tts.utils.managers import EmbeddingManager
+from TTS_my.TTS.config import get_from_config_or_model_args_with_default
+from TTS_my.TTS.tts.utils.managers import EmbeddingManager
 
 
 class SpeakerManager(EmbeddingManager):

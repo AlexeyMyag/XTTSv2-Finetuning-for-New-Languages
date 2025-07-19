@@ -6,18 +6,18 @@ from coqpit import Coqpit
 from torch import nn
 from trainer.logging.tensorboard_logger import TensorboardLogger
 
-from TTS.tts.layers.overflow.common_layers import Encoder, OverflowUtils
-from TTS.tts.layers.overflow.neural_hmm import NeuralHMM
-from TTS.tts.layers.overflow.plotting_utils import (
+from TTS_my.TTS.tts.layers.overflow.common_layers import Encoder, OverflowUtils
+from TTS_my.TTS.tts.layers.overflow.neural_hmm import NeuralHMM
+from TTS_my.TTS.tts.layers.overflow.plotting_utils import (
     get_spec_from_most_probable_state,
     plot_transition_probabilities_to_numpy,
 )
-from TTS.tts.models.base_tts import BaseTTS
-from TTS.tts.utils.speakers import SpeakerManager
-from TTS.tts.utils.text.tokenizer import TTSTokenizer
-from TTS.tts.utils.visual import plot_alignment, plot_spectrogram
-from TTS.utils.generic_utils import format_aux_input
-from TTS.utils.io import load_fsspec
+from TTS_my.TTS.tts.models.base_tts import BaseTTS
+from TTS_my.TTS.tts.utils.speakers import SpeakerManager
+from TTS_my.TTS.tts.utils.text.tokenizer import TTSTokenizer
+from TTS_my.TTS.tts.utils.visual import plot_alignment, plot_spectrogram
+from TTS_my.TTS.utils.generic_utils import format_aux_input
+from TTS_my.TTS.utils.io import load_fsspec
 
 
 class NeuralhmmTTS(BaseTTS):
@@ -244,7 +244,7 @@ class NeuralhmmTTS(BaseTTS):
                 Defaults to None.
             verbose (bool): If True, print init messages. Defaults to True.
         """
-        from TTS.utils.audio import AudioProcessor
+        from TTS_my.TTS.utils.audio import AudioProcessor
 
         ap = AudioProcessor.init_from_config(config, verbose)
         tokenizer, new_config = TTSTokenizer.init_from_config(config)

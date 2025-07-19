@@ -13,14 +13,14 @@ from torch.nn.utils.parametrize import remove_parametrizations
 
 import TTS.vc.modules.freevc.commons as commons
 import TTS.vc.modules.freevc.modules as modules
-from TTS.tts.utils.speakers import SpeakerManager
-from TTS.utils.io import load_fsspec
-from TTS.vc.configs.freevc_config import FreeVCConfig
-from TTS.vc.models.base_vc import BaseVC
-from TTS.vc.modules.freevc.commons import get_padding, init_weights
-from TTS.vc.modules.freevc.mel_processing import mel_spectrogram_torch
-from TTS.vc.modules.freevc.speaker_encoder.speaker_encoder import SpeakerEncoder as SpeakerEncoderEx
-from TTS.vc.modules.freevc.wavlm import get_wavlm
+from TTS_my.TTS.tts.utils.speakers import SpeakerManager
+from TTS_my.TTS.utils.io import load_fsspec
+from TTS_my.TTS.vc.configs.freevc_config import FreeVCConfig
+from TTS_my.TTS.vc.models.base_vc import BaseVC
+from TTS_my.TTS.vc.modules.freevc.commons import get_padding, init_weights
+from TTS_my.TTS.vc.modules.freevc.mel_processing import mel_spectrogram_torch
+from TTS_my.TTS.vc.modules.freevc.speaker_encoder.speaker_encoder import SpeakerEncoder as SpeakerEncoderEx
+from TTS_my.TTS.vc.modules.freevc.wavlm import get_wavlm
 
 
 class ResidualCouplingBlock(nn.Module):
@@ -317,8 +317,8 @@ class FreeVC(BaseVC):
         https://github.com/OlaWod/FreeVC
 
     Examples:
-        >>> from TTS.vc.configs.freevc_config import FreeVCConfig
-        >>> from TTS.vc.models.freevc import FreeVC
+        >>> from TTS_my.TTS.vc.configs.freevc_config import FreeVCConfig
+        >>> from TTS_my.TTS.vc.models.freevc import FreeVC
         >>> config = FreeVCConfig()
         >>> model = FreeVC(config)
     """

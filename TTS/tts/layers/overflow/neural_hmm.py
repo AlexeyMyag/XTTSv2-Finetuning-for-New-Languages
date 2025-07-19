@@ -6,9 +6,9 @@ import torch.nn.functional as F
 from torch import nn
 from torch.utils.checkpoint import checkpoint
 
-from TTS.tts.layers.overflow.common_layers import Outputnet, OverflowUtils
-from TTS.tts.layers.tacotron.common_layers import Prenet
-from TTS.tts.utils.helpers import sequence_mask
+from TTS_my.TTS.tts.layers.overflow.common_layers import Outputnet, OverflowUtils
+from TTS_my.TTS.tts.layers.tacotron.common_layers import Prenet
+from TTS_my.TTS.tts.utils.helpers import sequence_mask
 
 
 class NeuralHMM(nn.Module):
